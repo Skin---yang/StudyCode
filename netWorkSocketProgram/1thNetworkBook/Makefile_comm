@@ -1,0 +1,11 @@
+# this is common makefile for the network program.
+#
+
+CC=gcc
+CFLAGS= -g -O2 -D_REENTRANT -Wall
+
+OBJECTS=error.o wrapsock.o wrapunix.o wrappthread.o wrapstdio.o wraplib.o
+LIB_STATIC=../libs/libS.a
+LIBSNAME=S  # this static lib name in gcc can find lib prefix and suffix. so libS.a only use the S.
+STATICLIBSPATH=/root/study/netWorkSocketProgram/1thNetworkBook/libs
+
