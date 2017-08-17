@@ -1,6 +1,5 @@
 //this programing is a test.
 //vfork a process and return in the child process.
-//
 
 //you can get the difference between vfork and fork by manual. 
 
@@ -17,7 +16,8 @@ int main(int argc, char**argv)
     if(vPid == 0)
     {
         printf("this child pid = %d\n", getpid());
-        //return 0; can not use return,beaceuse return will callback the memory space. note: parent and child process shared memory space.
+        //return 0; can not use return,beaceuse return will callback the memory space. 
+        //note: parent and child process shared memory space.
         exit(1);
     }
 
