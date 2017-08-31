@@ -1,5 +1,5 @@
 #
-# this is Makefile generate the object.
+# this is Makefile generate the object and generate the static libary.
 #
 include ../Makefile_comm
 

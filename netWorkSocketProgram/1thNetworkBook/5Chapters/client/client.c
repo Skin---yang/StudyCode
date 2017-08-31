@@ -1,6 +1,26 @@
 #include "../../comm/unp.h"
 
-/* base client program */
+/*  this is a base client program 
+ *
+ *  the connection server will send data to the server after the success of the server.
+ *  last, the server will answer the same data.
+ *
+ * */
+
+void str_echo(int transSocket)
+{
+    char buf[MAXLINE] = {0};
+    bzero(buf, MAXLINE);
+    while(fgets(buf, MAXLINE, stdin) != NULL)
+    {
+        write(transSocket, buf, strlen(buf));
+        bzero(buf, MAXLINE);
+        if(read(transSocket, buf, MAXLINE) > 0)
+        {
+            printf("server: %s\n", buf);
+        }
+    }
+}
 
 void    ClientBase(char *s_addr)
 {
@@ -12,14 +32,14 @@ void    ClientBase(char *s_addr)
     cliSocket = socket(AF_INET, SOCK_STREAM, 0);
     if(-1 == cliSocket)    
     {
-       err_sys("create socket fail.\n"); 
+        err_sys("create socket fail.\n"); 
     }
 
     //initialization the struct serveraddr
     bzero(&serveraddr, sizeof(serveraddr));
-    
-    severaddr.sin_family = AF_INET;
-    severaddr.sin_port = SERV_PORT;
+
+    serveraddr.sin_family = AF_INET;
+    serveraddr.sin_port = htons(SERV_PORT);
 
     if(inet_pton(AF_INET, /*(const char*)*/s_addr, &serveraddr.sin_addr) <= 0)
     {
@@ -27,25 +47,14 @@ void    ClientBase(char *s_addr)
     }
 
     //connect to server
-    if(connect(cliSocket, (const struct sockaddr*)&serveraddr, sizeof(serveraddr)) <= 0)
+    if(connect(cliSocket, (const struct sockaddr*)&serveraddr, sizeof(serveraddr)) < 0)
     {
         err_quit("connect the function exec fail.");
     }
 
     bzero(recvbuf, sizeof(recvbuf));
-    
-    while(1)
-    {
-        if(read(cliSocket, recvbuf, MAXLINE) < 0)
-        {
-            err_quit("read buf is empty.\n");
-        }
 
-        fputs(recvbuf, stdout);
-
-        if(strcmp(recvbuf, "quit") == 0)
-            break;
-    }
+    str_echo(cliSocket);
 }
 
 
