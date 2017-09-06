@@ -9,7 +9,7 @@
 
 void str_echo(int transSocket)
 {
-    char buf[MAXLINE] = {0}; // this buf is small compare by server send
+    char buf[MAXLINE] = {0}; // this buf is small compare with the recieve buf
     bzero(buf, MAXLINE);
 
     int fd = fileno(stdin);
@@ -35,7 +35,7 @@ void str_echo(int transSocket)
             bzero(buf, MAXLINE);
             if(read(transSocket, buf, MAXLINE) == 0)
             {
-                //  also close the write. so not read the buf
+                //  close the write. so not read the buf
                 if(stdflush == 1)
                     return;
                 else
@@ -67,7 +67,6 @@ void    ClientBase(char *s_addr)
 {
     int cliSocket;
     struct sockaddr_in serveraddr;
-    char recvbuf[MAXLINE+1];
 
     // creat socket
     cliSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -92,8 +91,6 @@ void    ClientBase(char *s_addr)
     {
         err_quit("connect the function exec fail.");
     }
-
-    bzero(recvbuf, sizeof(recvbuf));
 
     str_echo(cliSocket);
 }

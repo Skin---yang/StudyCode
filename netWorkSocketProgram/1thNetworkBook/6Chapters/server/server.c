@@ -47,7 +47,7 @@ void ServerBase()
     while(1)
     {
         reset = allset;
-        nready = select(sevSocket, &reset, NULL, NULL, NULL);
+        nready = select(maxfd+1, &reset, NULL, NULL, NULL);
 
         if(nready == -1)
             err_quit("function select fail.\n");
@@ -72,7 +72,7 @@ void ServerBase()
 
             if(i == FD_SETSIZE)
             {
-                err_quit("not have enought descriptot");
+                err_quit("not have enough descriptot");
             }
 
             FD_SET(transSocket, &allset);
@@ -89,11 +89,12 @@ void ServerBase()
         }
 
         // check all client for data
-        for(i = 0; i < maxi; ++i)
+        for(i = 0; i <= maxi; ++i)
         {
             if((connSocket = client[i]) < 0)
                 continue;
-
+            // clear the buf
+            bzero(buf, MAXLINE);
             if(FD_ISSET(connSocket, &reset))
             {
                 if(read(connSocket, buf, MAXLINE) == 0)
@@ -105,8 +106,13 @@ void ServerBase()
                 }
                 else
                 {
+                    char sendbuf[MAXLINE];
+
+                    sprintf(sendbuf, "server: %s", buf);
                     //print the server data
                     puts(buf);
+                    // answer the client.
+                    write(connSocket, sendbuf, sizeof(buf));
                 }
 
                 // not have more socket
@@ -116,7 +122,6 @@ void ServerBase()
         }
     }
 }
-
 
 int main(int argc, char **argv)
 {
