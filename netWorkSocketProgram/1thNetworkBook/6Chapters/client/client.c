@@ -2,67 +2,63 @@
 
 /*  this is a base client program 
  *
- *  the str_echo function use select deal with socket.
- *  print message terim
+ *  the connection server will send data to the server after the success of the server.
+ *  last, the server will answer the same data.
  *
  * */
 
 void str_echo(int transSocket)
 {
-    char buf[MAXLINE] = {0};
+    char buf[MAXLINE] = {0}; // this buf is small compare with the recieve buf
     bzero(buf, MAXLINE);
 
-    int inputfd = fileno(stdin);
-    fd_set rset;
-    FD_ZERO(&rset);
-
-    FD_SET(inputfd, &rset);
-    FD_SET(transSocket, &rset);
-
+    int fd = fileno(stdin);
+    fd_set reset;
+    
     int stdflush = 0;
+    FD_ZERO(&reset);
     while(1)
-    {
-        if(stdflush == 0)
-            FD_CLR(inputfd, &rset);
-        int max = inputfd > transSocket ? inputfd+1:transSocket+1;
-        int ret = select(max, &rset, NULL, NULL, NULL);
+    {   
+        if(!stdflush)
+            FD_SET(fd, &reset);
+
+        FD_SET(transSocket, &reset);
+        int max = (fd > transSocket) ? fd+1:transSocket+1;
+        int ret = select(max, &reset, NULL, NULL, NULL);
         if(ret == -1)
         {
-            err_sys("select function fail. errno: %d\n", errno);
-            return;
+            err_quit("select function fail. errno: %d\n", errno);
         }
-
-        if(FD_ISSET(transSocket, &rset))
+        
+        if(FD_ISSET(transSocket, &reset))
         {
-            if(read(transSocket, buf, MAXLINE) > 0 )
+            bzero(buf, MAXLINE);
+            if(read(transSocket, buf, MAXLINE) == 0)
             {
+                //  close the write. so not read the buf
                 if(stdflush == 1)
-                    return;     // alse close.
-
-                puts(buf);
+                    return;
+                else
+                    err_quit("server terminaed prematurely.\n");
             }
-
-            int res = write(fileno(stdout), buf, MAXLINE);
-            if(res != 0)
-            {
-                FD_CLR(inputfd, &rset);
-            }
+            printf("%s", buf);
         }
 
-        if(FD_ISSET(inputfd, &rset))
+        if(FD_ISSET(fd, &reset))
         {
-            if(read(inputfd, buf, MAXLINE) == 0 )
+            if(fgets(buf, MAXLINE, stdin) == 0)
             {
                 stdflush = 1;
-                shutdown(transSocket, SHUT_WR); //send FIN to server
-                FD_CLR(inputfd, &rset);
+
+                // close the write socket
+                int res = shutdown(transSocket, SHUT_WR);
+                if(res != 0)
+                    err_quit("server terminaed prematurely.\n");
+
+                FD_CLR(fd, &reset);//clear
                 continue;
             }
-            int res = write(transSocket, buf, MAXLINE);
-            if(res != 0)
-            {
-                err_quit("write fail.");
-            }
+            write(transSocket, buf, strlen(buf));
         }
     }
 }
@@ -71,9 +67,6 @@ void    ClientBase(char *s_addr)
 {
     int cliSocket;
     struct sockaddr_in serveraddr;
-    char recvbuf[MAXLINE+1];
-
-    // creat socket
     cliSocket = socket(AF_INET, SOCK_STREAM, 0);
     if(-1 == cliSocket)    
     {
@@ -96,8 +89,6 @@ void    ClientBase(char *s_addr)
     {
         err_quit("connect the function exec fail.");
     }
-
-    bzero(recvbuf, sizeof(recvbuf));
 
     str_echo(cliSocket);
 }

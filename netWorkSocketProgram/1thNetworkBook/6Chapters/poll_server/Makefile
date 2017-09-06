@@ -4,16 +4,16 @@
 include ../../Makefile_comm
 
 PROJECT=base_server
-CLIENT=server.o
+SERVER=server.o
 
-all: ${CLIENT}
+all: ${SERVER}
 
 # link the static libary.
-$(CLIENT):%.o:%.c
+$(SERVER):%.o:%.c
 	$(CC) $< $(CFLAGS) -L$(STATICLIBSPATH) -l$(LIBSNAME) -static -o $(PROJECT)
 
 
 
 .PHONY : clean
 clean:
-	rm -rf $(CLIENT) $(PROJECT)
+	rm -rf $(SERVER) $(PROJECT)
