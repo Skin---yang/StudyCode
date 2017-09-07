@@ -8,7 +8,7 @@ void ServerBase()
     int sevSocket, i;
     struct sockaddr_in serveraddr;
     int  transSocket, connSocket;
-    int nready, 
+    int nready; 
     struct pollfd client[OPEN_MAX];
     int maxi;
     char buf[MAXLINE];
@@ -48,7 +48,9 @@ void ServerBase()
         nready = poll(client, maxi+1, INFTIM); 
         if(nready == -1)
             err_quit("function poll fail.\n");
-        
+        else if(nready == 0)
+            continue;
+
         if(client[0].revents & POLLRDNORM)
         {
             transSocket = accept(sevSocket, NULL, NULL);
@@ -77,33 +79,45 @@ void ServerBase()
         }
 
         // check all client for data
-        for(i = 0; i <= maxi; ++i)
+        for(i = 1; i <= maxi; ++i)
         {
             if((connSocket = client[i].fd) < 0)
                 continue;
             // clear the buf
             bzero(buf, MAXLINE);
-            if(client[i].revents & (POLLRDNORM | POLLERR))
+            ssize_t n = 0;
+            if(client[i].revents & (POLLRDNORM | POLLERR)) // check all client for data
             { 
-                if(read(connSocket, buf, MAXLINE) == 0) /* connection close by client*/
+                if(( n = read(connSocket, buf, MAXLINE)) == 0) /* connection close by client*/
                 {
                     close(connSocket);
                     client[i].fd = -1;
+                    printf("the client cancel.\n");
                 }
-                else if(read(connSocket, buf, MAXLINE) < 0)
+                /* in the here, at first i was useing the read function, the will lead to block here.
+                 * because the last read funciton removed data
+                 * */
+                else if(n < 0)/* read(connSocket, buf, MAXLINE)) < 0 */ 
                 {
-                    /* connection reset by client */
-                    close(connSocket);
-                    client[i].fd = -1;
+                    if(errno == ECONNRESET)
+                    {
+                        /* connection reset by client */
+                        close(connSocket);
+                        client[i].fd = -1;
+                    }
+                    else
+                        err_quit("read error\n");
                 }
                 else
                 {
+                    // print the data
+                    printf("receive client data : %s", buf);
+
                     char sendbuf[MAXLINE+10];
                     sprintf(sendbuf, "server: %s", buf);
-                    write(connSocket, sendbuf, sizeof(sendbuf));
-
-                    // print the data
-                    puts(buf);
+                    ssize_t ret = write(connSocket, sendbuf, sizeof(sendbuf));
+                    if(ret == -1)
+                        err_sys("write funciton error.\n");
                 }
 
                 // not have more socket

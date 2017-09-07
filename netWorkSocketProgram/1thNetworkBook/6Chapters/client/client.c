@@ -58,7 +58,7 @@ void str_echo(int transSocket)
                 FD_CLR(fd, &reset);//clear
                 continue;
             }
-            write(transSocket, buf, strlen(buf));
+            write(transSocket, buf, sizeof(buf));
         }
     }
 }

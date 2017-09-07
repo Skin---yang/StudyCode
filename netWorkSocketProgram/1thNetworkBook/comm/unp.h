@@ -201,6 +201,10 @@ struct unp_in_pktinfo {
 #define	SERV_PORT_STR	"9877"			/* TCP and UDP */
 #define	UNIXSTR_PATH	"/tmp/unix.str"	/* Unix domain stream */
 #define	UNIXDG_PATH		"/tmp/unix.dg"	/* Unix domain datagram */
+
+
+
+#define OPEN_MAX        1024    /* this is the poll function maximum descript.  add by yangcong*/
 /* $$.ix [LISTENQ]~constant,~definition~of$$ */
 /* $$.ix [MAXLINE]~constant,~definition~of$$ */
 /* $$.ix [BUFFSIZE]~constant,~definition~of$$ */
