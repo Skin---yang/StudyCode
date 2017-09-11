@@ -1,6 +1,3 @@
-# this is base make file.
-# add some code you need.
-
 include ../../Makefile_comm
 
 PROJECT=base_server
